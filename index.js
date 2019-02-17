@@ -8,6 +8,7 @@ const ddg = require('ddg');
 const rp = require('request-promise-native')
 
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
+socket = io.listen(process.env.PORT);
 
 const express = require('express');
 const app = express();
