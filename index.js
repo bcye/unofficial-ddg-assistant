@@ -8,7 +8,6 @@ const ddg = require('ddg');
 const rp = require('request-promise-native')
 
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
-socket = io.listen(process.env.PORT);
 
 const express = require('express');
 const app = express();
@@ -16,7 +15,7 @@ app.use( express.json() );
 
 app.post('/', (req, res) => processWebhook( req, res ));
 
-app.listen(3000, () => console.log('App listening on port 3000!'));
+app.listen(process.env.PORT, () => console.log('App listening on port 3000!'));
 
 function processWebhook(request, response) {
   const agent = new WebhookClient({ request, response });
