@@ -50,7 +50,7 @@ function processWebhook(request, response) {
             	var moreUrl = data.AbstractURL;
             	var heading = data.Heading;
             	agent.add(answer + ' Answer provided by DuckDuckGo and ' + source);
-            	agent.end(new Card({
+            	agent.add(new Card({
        	       title: heading,
         	       imageUrl: imageUrl,
         	       text: answer,
