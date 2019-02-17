@@ -2,10 +2,10 @@
 // for Dialogflow fulfillment library docs, samples, and to report issues
 'use strict';
 
-const functions = require('firebase-functions');
 const {WebhookClient} = require('dialogflow-fulfillment');
 const {Card, Suggestion} = require('dialogflow-fulfillment');
 const ddg = require('ddg');
+const rp = require('request-promise-native')
 
 process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
 
@@ -13,7 +13,7 @@ const express = require('express');
 const app = express();
 app.use( express.json() );
 
-app.get('/', (req, res) => processWebhook( req, res ));
+app.post('/', (req, res) => processWebhook( req, res ));
 
 app.listen(3000, () => console.log('App listening on port 3000!'));
 
@@ -29,31 +29,42 @@ function processWebhook(request, response) {
   function fallback(agent) {
     agent.add(`I didn't understand`);
     agent.add(`I'm sorry, can you try again?`);
-}
-  function search(agent) {
-    agent.add(`Here is what I found.`);
-    agent.add('Here is what I found too!');
-    var term = agent.parameters.searchphrase;
-  	ddg.query(term, function(err, data){
-		var answer = data.AbstractText;
-    	var imageUrl = data.Image;
-    	var source = data.AbstractSource;
-      	var moreUrl = data.AbstractURL;
-      	var heading = data.Heading;
-
-      	agent.add(answer);
-      	agent.add(new Card({
- 	       title: heading,
-  	       imageUrl: imageUrl,
-  	       text: answer,
-  	       buttonText: 'More about this',
-  	       buttonUrl: moreUrl
-  	     })
-  	   	);
-      	agent.add('Answer provided by DuckDuckGo and ' + source);
-	});
   }
+  function search(agent) {
+    var term = agent.parameters.searchphrase;
+       var options = {
+         uri: 'https://api.duckduckgo.com/?q=duckduckgo&format=json',
+         json: true // Automatically parses the JSON string in the response
+       };
 
+       return new Promise( function( resolve, reject ){
+         ddg.query( term, function( err, data ){
+           if( err ){
+             console.log(err);
+             reject( err );
+           } else {
+             console.log(data);
+              var answer = data.AbstractText;
+          	  var imageUrl = data.Image;
+          	  var source = data.AbstractSource;
+            	var moreUrl = data.AbstractURL;
+            	var heading = data.Heading;
+            	agent.add(answer + ' Answer provided by DuckDuckGo and ' + source);
+            	agent.add(new Card({
+       	       title: heading,
+        	       imageUrl: imageUrl,
+        	       text: answer,
+        	       buttonText: 'More about this',
+        	       buttonUrl: moreUrl
+        	     })
+        	   	);
+             // Put the previous body of your callback here, concluding with...
+             resolve();
+           }
+         })
+  }    );
+  	//ddg.query(term, handle);
+  }
 
   // // Uncomment and edit to make your own intent handler
   // // uncomment `intentMap.set('your intent name here', yourFunctionHandler);`
